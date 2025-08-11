@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel = "stylesheet" href = "style.css">
+    <title>Invoice Generator</title>
+</head>
+<body>
+<div id = "app_container">
+    <h1><strong>Invoice Generator</strong></h1>
+    <div id = "buttons">
+        <button id = "enter" style = "color:red;font-size:large">Enter</button>
+        <button id = "fetch" style = "color:orange;font-size:large">Fetch</button>
+    </div>
+    <div id = "enter-mode" style = "display:none">
+        <h2>Enter Invoice</h2>
+        <form id = "invoice-form">
+            <label>
+                Tenant Name:
+                <input type = "text" id = "tenant-name" required><br>
+                <br>Tenant's GSTIN:
+                <input type = "text" id = "gst-tenant">
+                <br>
+            </label><br>  
+            <label for = "tenant-address" style = "display:inline-block;vertical-align:top;margin-right:10px;">Tenant Address:</label>
+            <textarea style = "vertical-align:top;" id = "tenant-address" rows = "3" placeholder="Line1&#10;Line2&#10;Line3" required></textarea>
+            <br><br><label>
+                Owner's Name:
+                <input type = "text" id = "owner-name" value = "Tushar Chandra" required>
+                <br><br>Owner's GSTIN:
+                <input type = "text" id = "gst-owner">
+                <br>
+            </label><br>
+            <label for = "owner-address" style ="display:inline-block;vertical-align:top;margin-right:10px;">Owner's Address</label>
+            <textarea style = "vertical-align:top" id = "owner-address" rows = "3" placeholder = "Line1&#10;Line2&#10;Line3" required></textarea>
+            <label><br>
+                Rent:
+                <input type = "number" id = "rent" required>
+            </label><br>
+            <label>
+                Invoice Date:
+                <input type = "date" id = "invoice-date" value = "">
+            </label>
+            <br><br>
+            <label>
+                SAC/HSN:
+                <input type="number" id = "sac" value = "997212">
+            </label><br><br>
+            <table>
+                <tr>
+                    <td>
+                        <label>
+                            SGST:
+                            <input type="number" id="sgst" value="9.0">
+                        </label>
+                    </td>
+                    <td style = "padding-left:40px;">
+                        <label>
+                            CGST:
+                            <input type="number" id="cgst" value="9.0">
+                        </label>
+                    </td>
+                </tr>
+            </table><br>
+            <button type = "submit" id = "submit" style = "color:red;font-size:large;border-radius:10%;background-color:white">Save Invoice</button>
+        </form>
+    </div>
+
+
+    <div id = "fetch-mode" style = "display:none">
+        <div>
+            <label for="tenant-filter">Filter by Tenant:</label>
+            <select id="tenant-filter">
+                <option value="">-- All Tenants --</option>
+            </select>
+
+            <label for="date-filter">Filter by Date:</label>
+            <select id="date-filter">
+                <option value="">-- All Dates --</option>
+            </select>
+        </div>
+
+        <div id="invoice-list"></div>
+    </div>
+</div>
+    <script src = "script.js"></script>
+</body>
+</html>
