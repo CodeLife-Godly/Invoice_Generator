@@ -1,130 +1,226 @@
+const form = document.getElementById('invoice-form');
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Script loaded and ready!");
 
-  const form = document.getElementById('invoice-form');
+  populateOwnerList();
+  populateTenantList();
+
   const dateInput = document.getElementById('invoice-date');
   const invoiceList = document.getElementById('invoice-list');
   const tenantFilter = document.getElementById('tenant-filter');
   const dateFilter = document.getElementById('date-filter');
   const enterModeDiv = document.getElementById('enter-mode');
   const fetchModeDiv = document.getElementById('fetch-mode');
-  const SAC = document.getElementById('sac').value.trim();
-  
+
   // Set default to today's date
   const today = new Date().toISOString().split('T')[0];
   dateInput.value = today;
 
-  form.addEventListener('submit', function(e) {
+  function saveTenant(tenantName, gst, address) {
+    let tenants = JSON.parse(localStorage.getItem('tenants')) || {};
+    
+    tenants[tenantName] = { gst, address };
+    localStorage.setItem('tenants', JSON.stringify(tenants));
+    populateTenantList();
+  }
+
+  function saveOwner(ownerName, gst, address) {
+    let owners = JSON.parse(localStorage.getItem('owners')) || {};
+    
+    owners[ownerName] = { gst, address };
+    localStorage.setItem('owners', JSON.stringify(owners));
+    populateOwnerList();
+  }
+
+  // Autofill tenant info
+  function autofillTenant(name) {
+    const tenants = JSON.parse(localStorage.getItem("tenants")) || {};
+    if (tenants[name]) {
+        document.getElementById("gst-tenant").value = tenants[name].gst;
+        document.getElementById("tenant-address").value = tenants[name].address;
+    } else {
+        // clear if new tenant
+        document.getElementById("gst-tenant").value = "";
+        document.getElementById("tenant-address").value = "";
+    }   
+}
+
+  // Save owner info if new
+  function autofillOwner(name) {
+    const owners = JSON.parse(localStorage.getItem("owners")) || {};
+    if (owners[name]) {
+        document.getElementById("gst-owner").value = owners[name].gst;
+        document.getElementById("owner-address").value = owners[name].address;
+    } else {
+        // clear if new owner
+        document.getElementById("gst-owner").value = "";
+        document.getElementById("owner-address").value = "";
+    }
+}
+
+
+function updateTenantDropdown() {
+  const tenantList = document.getElementById("tenant-list");
+  tenantList.innerHTML = ""; // clear old entries
+
+  const tenants = JSON.parse(localStorage.getItem("tenants")) || {};
+  Object.keys(tenants).forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    tenantList.appendChild(option);
+  });
+}
+
+function updateOwnerDropdown() {
+  const ownerList = document.getElementById("owner-list");
+  ownerList.innerHTML = "";
+
+  const owners = JSON.parse(localStorage.getItem("owners")) || {};
+  Object.keys(owners).forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    ownerList.appendChild(option);
+  });
+}
+
+document.getElementById("tenant-name").addEventListener("input", (e) => {
+  autofillTenant(e.target.value.trim());
+});
+document.getElementById("owner-name").addEventListener("input", (e) => {
+  autofillOwner(e.target.value.trim());
+});
+
+    form.addEventListener('submit', function(e) {
     e.preventDefault();
 
     const tenant = document.getElementById('tenant-name').value.trim();
-    const owner = document.getElementById('owner-name').value.trim();
-    const gstin_tenant = document.getElementById('gst-tenant').value.trim();
-    const gstin_owner = document.getElementById('gst-owner').value.trim();
+    const gst_tenant = document.getElementById('gst-tenant').value.trim();
     const tenant_address = document.getElementById('tenant-address').value.trim();
-    const owner_address = document.getElementById('owner-address').value.trim();
-    const SAC = document.getElementById('sac').value;
-    const baseAmount = parseFloat(document.getElementById('rent').value);
-  
 
+    const owner = document.getElementById('owner-name').value.trim();
+    const gst_owner = document.getElementById('gst-owner').value.trim();
+    const owner_address = document.getElementById('owner-address').value.trim();
+
+    saveOwner(owner,gst_owner,owner_address);
+    updateOwnerDropdown();
+    saveTenant(tenant,gst_tenant,tenant_address);
+    updateTenantDropdown();
+
+    const monthof = document.getElementById('month-of').value;
+    const monthyear = formatMonthYear(monthof);
+    const SAC = document.getElementById('sac').value.trim();
+    const baseAmount = parseFloat(document.getElementById('rent').value.trim());
     const sgst_rate = document.getElementById('sgst').value;
     const cgst_rate = document.getElementById('cgst').value;
-    const sgst = (baseAmount * sgst_rate)/100;
-    const cgst = (baseAmount * cgst_rate)/100;
+    const sgst = (baseAmount * sgst_rate) / 100;
+    const cgst = (baseAmount * cgst_rate) / 100;
     const total = baseAmount + sgst + cgst;
 
-    let invoiceCount = parseInt(localStorage.getItem('invoiceCount')) || 0;
-    invoiceCount += 1;
-    localStorage.setItem('invoiceCount', invoiceCount);
 
     const invoiceDate = dateInput.value;
     const dateObj = new Date(invoiceDate);
+    const financialYear = getFinancialYear(dateObj);
     const formattedDate = String(dateObj.getDate()).padStart(2, '0') + '-' +
-                      String(dateObj.getMonth() + 1).padStart(2, '0') + '-' +
-                      dateObj.getFullYear();
-
-
+                          String(dateObj.getMonth() + 1).padStart(2, '0') + '-' +
+                          dateObj.getFullYear();
     const monthName = dateObj.toLocaleString('default', { month: 'long' });
     const year = dateObj.getFullYear();
     const monthYear = `${monthName} ${year}`;
 
-    const financialYear = getFinancialYear(dateObj);
-
-    const invoice = {
-        monthYear,
-        financialYear,
-        gstin_tenant,
-        gstin_owner,
-        tenant_address,
-        owner_address,
-        invoiceNumber: invoiceCount,
-        tenant,
-        owner,
-        baseAmount,
-        sgst,
-        cgst,
-        sgst_rate,
-        cgst_rate,
-        total,
-        SAC,
-        date: formattedDate,
-        timestamp: new Date().toLocaleString()
-    };
 
     let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-    invoices.push(invoice);
+    let invoice = { monthof, monthyear, monthYear, financialYear, gst_tenant, gst_owner, tenant_address, owner_address, tenant, owner, baseAmount, sgst, cgst, sgst_rate, cgst_rate, total, SAC, date: formattedDate, timestamp: new Date().toLocaleString() };
+
+    const editing = form.dataset.editingInvoice;
+
+    if (editing) {
+        const [invoiceNumberStr] = editing.split('-');
+        const invoiceNumber = parseInt(invoiceNumberStr);
+
+        const index = invoices.findIndex(inv => 
+            inv.invoiceNumber === invoiceNumber
+        );
+        if (index !== -1) {
+            invoice.invoiceNumber = parseInt(invoiceNumber); 
+            invoice.financialYear = invoices[index].financialYear;
+            invoices[index] = invoice; 
+        }
+        delete form.dataset.editingInvoice; // clear editing flag
+    } else {
+        let invoiceCounts = JSON.parse(localStorage.getItem('invoiceCounts')) || {};
+        let invoiceNumber = 1;
+
+        if (invoiceCounts[financialYear]) invoiceNumber = invoiceCounts[financialYear] + 1;
+        invoiceCounts[financialYear] = invoiceNumber;
+        localStorage.setItem('invoiceCounts', JSON.stringify(invoiceCounts));
+        invoice.invoiceNumber = invoiceNumber;
+        invoices.push(invoice);
+    }
+
     localStorage.setItem('invoices', JSON.stringify(invoices));
 
+    displayInvoices();
+
     window.alert("Invoice saved!");
-    form.reset();
-    dateInput.value = today; // reset to today
-  });
+
+    if(!editing){
+        form.reset();
+        dateInput.value = new Date().toISOString().split('T')[0]; // reset to today
+    } 
+});
 
     //selecting enter mode
-    document.querySelector('button:nth-of-type(1)').onclick = () => {
+  document.getElementById('enter').onclick = () => {
     enterModeDiv.style.display = 'block';
     fetchModeDiv.style.display = 'none';
   };
 
   //selecting fetch 
-  document.querySelector('button:nth-of-type(2)').onclick = () => {
+  document.getElementById('fetch').onclick = () => {
     enterModeDiv.style.display = 'none';
     fetchModeDiv.style.display = 'block';
     displayInvoices();
   };
-
+  
   function displayInvoices() {
-        const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+    const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
-        // Extract unique tenant names and dates
-        const uniqueTenants = [...new Set(invoices.map(inv => inv.tenant))];
-        const uniqueDates = [...new Set(invoices.map(inv => inv.date))];
-
-        // Populate tenant dropdown
+    if (invoices.length === 0) {
+        invoiceList.innerHTML = '<p>No invoices found.</p>';
         tenantFilter.innerHTML = '<option value="">-- All Tenants --</option>';
-        uniqueTenants.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            tenantFilter.appendChild(option);
-        });
-
-        // Populate date dropdown
         dateFilter.innerHTML = '<option value="">-- All Dates --</option>';
-        uniqueDates.forEach(date => {
-            const option = document.createElement('option');
-            option.value = date;
-            option.textContent = date;
-            dateFilter.appendChild(option);
-         });
+        return;
+    }
 
-        // Call filter logic after dropdowns are ready
-        renderFilteredInvoices(invoices);
-        }
-    
-    function renderFilteredInvoices(invoices) {
+    // Populate tenant dropdown
+    const uniqueTenants = [...new Set(invoices.map(inv => inv.tenant))];
+    tenantFilter.innerHTML = '<option value="">-- All Tenants --</option>';
+    uniqueTenants.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        tenantFilter.appendChild(option);
+    });
+
+    // Populate date dropdown
+    const uniqueDates = [...new Set(invoices.map(inv => inv.date))];
+    dateFilter.innerHTML = '<option value="">-- All Dates --</option>';
+    uniqueDates.forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = date;
+        dateFilter.appendChild(option);
+    });
+
+    renderFilteredInvoices(invoices);
+
+    tenantFilter.onchange = () => renderFilteredInvoices(invoices);
+    dateFilter.onchange = () => renderFilteredInvoices(invoices);
+  }
+
+  function renderFilteredInvoices(invoices) {
     invoiceList.innerHTML = '';
-
     const tenantValue = tenantFilter.value;
     const dateValue = dateFilter.value;
 
@@ -145,59 +241,101 @@ document.addEventListener('DOMContentLoaded', () => {
         div.style.margin = '10px 0';
         div.style.padding = '10px';
 
-        // Unique IDs for original & duplicate
         const originalId = `print-${inv.invoiceNumber}-Original`;
-        const duplicateId = `print-${inv.invoiceNumber}-Duplicate`;
+        const duplicateId = `print-${inv.invoiceNumber}-Copy`;
 
         div.innerHTML = `
-            <!-- ORIGINAL COPY -->
             <div class="print-invoice print-only" id="${originalId}">
                 ${renderInvoiceHTML(inv, "Original")}
+                <div style="margin-top: 10px;">
+                    <button class="delete-btn" data-invoice="${inv.invoiceNumber}" data-year="${inv.financialYear}" 
+                        style="padding:6px 12px; background:#f44336; color:#fff; border:none; cursor:pointer;">
+                        🗑 Delete Invoice
+                    </button>
+                    <button class="print-btn" data-id="${originalId}" 
+                        style="padding:6px 12px; margin-left:5px;">🖨 Print Original</button>
+                    <button class="edit-btn" data-invoice="${inv.invoiceNumber}" data-year="${inv.financialYear}" 
+                        style="padding:6px 12px; margin-left:5px; background:#4CAF50; color:white; border:none; cursor:pointer;">
+                        ✏️ Edit Invoice
+                    </button>
+                </div>
             </div>
-            <button onclick="printInvoice('${originalId}')" 
-                style="margin-top: 10px; padding: 6px 12px; font-size: 14px;">
-                🖨 Print Original
-            </button>
 
-            <hr style="border: 2px dashed #000; margin: 40px 0;">
+            <hr style="border:2px dashed #000; margin:40px 0;">
 
-            <!-- DUPLICATE COPY -->
             <div class="print-invoice print-only" id="${duplicateId}">
-                ${renderInvoiceHTML(inv, "Duplicate")}
+                ${renderInvoiceHTML(inv, "Copy")}
+                <div style="margin-top: 10px;">
+                    <button class='delete-btn' data-invoice="${inv.invoiceNumber}" data-year="${inv.financialYear}" 
+                        style="padding:6px 12px; background:#f44336; color:#fff; border:none; cursor:pointer;">
+                        🗑 Delete Invoice
+                    </button>
+                    <button class="print-btn" data-id="${duplicateId}" 
+                        style="padding:6px 12px; margin-left:5px;">🖨 Print Copy</button>
+                    <button class="edit-btn" data-invoice="${inv.invoiceNumber}" data-year="${inv.financialYear}" 
+                        style="padding:6px 12px; margin-left:5px; background:#4CAF50; color:white; border:none; cursor:pointer;">
+                        ✏️ Edit Invoice
+                    </button>
+                </div>
             </div>
-            <button onclick="printInvoice('${duplicateId}')" 
-                style="margin-top: 10px; padding: 6px 12px; font-size: 14px;">
-                🖨 Print Duplicate
-            </button>
         `;
 
         invoiceList.appendChild(div);
-      });
+
+        // Attach delete event listeners
+        div.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const number = parseInt(btn.dataset.invoice);
+                const year = btn.dataset.year;
+                deleteInvoice(number, year);
+            });
+        });
+
+        // Attach print event listeners
+        div.querySelectorAll('.print-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const elementId = btn.dataset.id;
+                printInvoice(elementId);
+            });
+        });
+
+        // Attach edit event listeners
+        div.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const number = parseInt(btn.dataset.invoice);
+                const year = btn.dataset.year;
+                editInvoice(number, year);
+            });
+        });
+    });
   }
+
 
   function renderInvoiceHTML(inv, copyType) {
     return `
     <table style="width:100%; border:none; margin-bottom:10px;">
         <tr>
-            <td style="text-align:left; border:none;">
-                <strong>INVOICE NO. </strong>${inv.financialYear} / ${inv.invoiceNumber}
+            <td style="text-align:left; border:none;font-size:small;">
+                INVOICE NO. ${inv.financialYear}/${inv.invoiceNumber}
             </td>
             <td style="text-align:center; border:none;">
                 <h2 style="margin:0;">TAX INVOICE (${copyType})</h2>
             </td>
-            <td style="text-align:right; border:none;">
-                <strong>Date:</strong> ${inv.date}
+            <td style="text-align:right; border:none;font-size:small;">
+                Date: ${inv.date}
             </td>
         </tr>
     </table>
 
+    <br>
+
     <table style="width:100%; border:none;">
         <tr>
-            <td style="width:80px;vertical-align:top; font-weight:bold; border:none;"></td>
+            <td style="width:80px; text-align:center; vertical-align:top; font-weight:bold; border:none;">OWNER</td>
             <td style="border:none; text-align:left;padding-left:30px;">
-                <strong>${inv.owner}</strong><br>
-                ${inv.owner_address.replace(/\n/g, '<br>')}<br>
-                <strong>GSTIN: ${inv.gstin_owner}</strong>
+                <strong>${inv.owner.toUpperCase()}</strong><br>
+                ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
+                <strong>GSTIN: ${inv.gst_owner}</strong>
             </td>
         </tr>
     </table>
@@ -206,117 +344,271 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <table style="width:100%; border:none;">
         <tr>
-            <td style="width:80px;text-align:center;vertical-align:top; font-weight:bold; border:none;">TENANT</td>
+            <td style="width:80px; text-align:center; vertical-align:top; font-weight:bold; border:none;">TENANT</td>
             <td style="border:none; text-align:left;padding-left:30px;">
-                <strong>${inv.tenant}</strong><br>
-                ${inv.tenant_address.replace(/\n/g, '<br>')}<br>
-                <strong>GSTIN: ${inv.gstin_tenant}</strong>
+                <strong>${inv.tenant.toUpperCase()}</strong><br>
+                ${inv.tenant_address.replace(/\n/g, '<br>')}<br><br>
+                <strong>GSTIN: ${inv.gst_tenant}</strong>
             </td>
         </tr>
     </table>
 
-    <hr>
+    <br>
 
-    <p><strong>For the Month of: </strong>${inv.monthYear}</p>
-
-    <table class="details-table">
-        <thead>
-            <tr>
-                <th style="padding:10px 10px;">PARTICULARS</th>
-                <th style="padding:10px 10px;">HSN/SAC</th>
-                <th style="padding:10px 10px;">Taxable Value</th>
-                <th style="padding:10px 10px;">CGST (${inv.cgst_rate}%)</th>
-                <th style="padding:10px 10px;">SGST (${inv.sgst_rate}%)</th>
-                <th style="padding:8px;">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>MONTHLY RENT</td>
-                <td>${inv.SAC}</td>
-                <td>₹${inv.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td>₹${inv.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td>₹${inv.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td>₹${inv.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-            </tr>
-        </tbody>
+    <table id="main_table" style="font-size:14px;width:100%; border-collapse: collapse; border: 1px solid black; text-align:left;">
+        <tr>
+            <td style="border: 1px solid black; padding: 8px; text-align:center;">PARTICULARS</td>
+            <td style="border: 1px solid black; padding: 8px; text-align:center;">AMOUNT</td>
+        </tr>
+        <tr>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top:none; border-bottom:none; padding:12px 8px; vertical-align: top;">
+                <strong>MONTHLY RENT</strong><br>
+                <div style="margin-bottom:80px;">
+                    For The Month of <span id="month-of-display">${inv.monthyear}</span>
+                </div>
+            </td>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top:none; border-bottom:none; padding:12px 8px; text-align:right; vertical-align: top;">
+                ₹${inv.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </td>
+        </tr>
+        <tr>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top: none; border-bottom: none; padding: 1px 8px; text-align:right;">
+                CGST @ ${inv.cgst_rate}%
+            </td>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top: none; border-bottom: none; padding: 1px 8px; text-align:right;">
+                ₹${inv.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </td>
+        </tr>
+        <tr>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top: none; border-bottom: 1px solid black; padding: 1px 8px; text-align:right;">
+                SGST @ ${inv.sgst_rate}%
+            </td>
+            <td style="border-left: 1px solid black; border-right: 1px solid black; border-top: none; border-bottom: 1px solid black; padding: 1px 8px; text-align:right;">
+                ₹${inv.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; padding: 18px 8px; text-align:center;">TOTAL</td>
+            <td style="border: 1px solid black; padding: 18px 8px; text-align:right;">
+                ₹${inv.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </td>
+        </tr>
     </table>
 
-    <p><strong>Total Tax:</strong> ₹${(inv.sgst + inv.cgst).toFixed(2)}</p>
-    <p><strong>Total Payable:</strong> ₹${inv.total.toFixed(2)}</p>
-    <p><strong>Amount in Words:</strong> ${convertToWords(inv.total)} Only</p>
+    <p>Amount Chargeable (in Words)</p>
+    <p>Rupees ${convertToWords(inv.total)} Only</p>
+    <br>
 
-    <p style="margin-top: 30px;"><em>Late payment beyond 10 days will attract 24% P.A. interest.<br>All disputes are subject to Haldwani Jurisdiction only.</em></p>
+    <table id="details_table" style="font-size:14px;width:100%; border-collapse: collapse; border: 1px solid black; text-align:center;">
+        <tr>
+            <td rowspan="2" style="border: 1px solid black; padding: 8px;">HSN/SAC</td>
+            <td rowspan="2" style="border: 1px solid black; padding: 8px;">Taxable Value</td>
+            <td colspan="2" style="border: 1px solid black; padding: 8px;">Central Tax</td>
+            <td colspan="2" style="border: 1px solid black; padding: 8px;">State Tax</td>
+            <td rowspan="2" style="border: 1px solid black; padding: 8px;">Total Tax Amount</td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">Rate</td>
+            <td style="border: 1px solid black; padding: 8px;">Amount</td>
+            <td style="border: 1px solid black; padding: 8px;">Rate</td>
+            <td style="border: 1px solid black; padding: 8px;">Amount</td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">${inv.SAC}</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">${inv.cgst_rate}%</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">${inv.sgst_rate}%</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${(inv.cgst + inv.sgst).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">TOTAL</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">${inv.cgst_rate}%</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">${inv.sgst_rate}%</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${inv.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            <td style="border: 1px solid black; padding: 8px;">₹${(inv.cgst + inv.sgst).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        </tr>
+    </table>
 
-    <p style="text-align:right;"><strong>${inv.owner}</strong><br>Auth. Signatory</p>
+    <div style="font-size:14px;margin-top: 8px; border: 1px solid black; padding: 8px;">
+        Tax Amount (In Words) &nbsp; Rupees ${convertToWords(inv.total)} Only
+    </div>
+
+    <p style="margin-top: 30px;font-size:12px;">
+        <em>
+            Kindly favor us with a remittance of the same.<br>
+            Late payment beyond 10 days will attract 24% P.A. interest.<br>
+            All disputes are subject to Haldwani Jurisdiction only.
+        </em>
+    </p>
+
+    <p style="text-align:right;">
+        ${inv.owner.toUpperCase()}<br><br><br>
+        Auth. Signatory
+    </p>
     `;
   }
 
-  
+  function deleteInvoice(invoiceNumber, financialYear) {
+    let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
+    if (confirm("Are you sure you want to delete this invoice?")) {
+        // Remove invoice by invoiceNumber & financialYear
+        invoices = invoices.filter(inv => !(inv.invoiceNumber === invoiceNumber && inv.financialYear === financialYear));
+        localStorage.setItem('invoices', JSON.stringify(invoices));
 
-    tenantFilter.addEventListener('change', () => {
-        const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-        renderFilteredInvoices(invoices);
-    });
+        // Update invoiceCounts for that financial year
+        let invoiceCounts = JSON.parse(localStorage.getItem('invoiceCounts')) || {};
+        const maxNumber = Math.max(...invoices.filter(inv => inv.financialYear === financialYear).map(inv => inv.invoiceNumber), 0);
+        invoiceCounts[financialYear] = maxNumber;
+        localStorage.setItem('invoiceCounts', JSON.stringify(invoiceCounts));
 
-    dateFilter.addEventListener('change', () => {
-        const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-        renderFilteredInvoices(invoices);
-    });
+        // Remove the divs from DOM immediately (both original + duplicate)
+        const originalDiv = document.getElementById(`print-${invoiceNumber}-Original`);
+        const duplicateDiv = document.getElementById(`print-${invoiceNumber}-Copy`);
+        if (originalDiv) originalDiv.remove();
+        if (duplicateDiv) duplicateDiv.remove();
+
+        displayInvoices();
+    }
+  } 
 });
 
-function printInvoice(elementId) {
-    const invoiceElement = document.getElementById(elementId);
+function populateTenantList() {
+  const tenants = JSON.parse(localStorage.getItem("tenants")) || {};
+  const tenantList = document.getElementById("tenant-list");
+  tenantList.innerHTML = "";
+  Object.keys(tenants).forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    tenantList.appendChild(option);
+  });
+}
 
-    if (!invoiceElement) {
+function populateOwnerList() {
+  const owners = JSON.parse(localStorage.getItem("owners")) || {};
+  const ownerList = document.getElementById("owner-list");
+  ownerList.innerHTML = "";
+  Object.keys(owners).forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    ownerList.appendChild(option);
+  });
+}
+
+
+function printInvoice(elementId){
+      const invoiceElement = document.getElementById(elementId);
+
+      if (!invoiceElement) {
+          alert("Invoice not found!");
+          return;
+      }
+
+      // Include existing styles
+      let styles = "";
+      document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
+          styles += node.outerHTML;
+      });
+
+      const printWindow = window.open('', '', 'width=900,height=1000');
+
+      printWindow.document.write(`
+          <html>
+              <head>
+                  <title>Invoice</title>
+                  ${styles}
+                  <style>
+                      /* Reduce print margins */
+                      @page {
+                          margin: 2mm; /* adjust as needed */
+                      }
+
+                      body {
+                          font-family: Arial, sans-serif;
+                          margin: 0; /* remove default body margin */
+                      }
+
+                      .invoice-container {
+                          border: 2px solid black;
+                          padding: 5px;
+                          box-sizing: border-box;
+                          width: 100%;
+                      }
+
+                    .edit-btn, .print-btn, .delete-btn{
+                        visibility:hidden;
+                    }
+
+                      table {
+                          border-collapse: collapse;
+                          width: 100%;
+                      }
+
+                      td, th {
+                          border: none;
+                          padding: 0;
+                          text-align: left;
+                      }
+
+                      table, tr, td {
+                          page-break-inside: avoid;
+                      }
+                  </style>
+              </head>
+              <body>
+                  <div class="invoice-container">
+                      ${invoiceElement.outerHTML}
+                  </div>
+              </body>
+          </html>
+      `);
+
+      printWindow.document.close();
+
+      printWindow.onload = function () {
+          printWindow.focus();
+          printWindow.print();
+          printWindow.close();
+      };
+}
+
+function editInvoice(invoiceNumber, financialYear) {
+    const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+    const invoice = invoices.find(inv => 
+        inv.invoiceNumber === invoiceNumber && inv.financialYear === financialYear
+    );
+
+    if (!invoice) {
         alert("Invoice not found!");
         return;
     }
 
-    // Extract invoice number & copy type from ID
-    // Example: "print-5-Original" → ["print", "5", "Original"]
-    const parts = elementId.split('-');
-    const invoiceNumber = parts[1];
-    const copyType = parts[2] || "Copy";
+    // Show Enter Mode
+    document.getElementById('enter-mode').style.display = 'block';
+    document.getElementById('fetch-mode').style.display = 'none';
 
-    // Get all stylesheets from the current page
-    let styles = "";
-    document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
-        styles += node.outerHTML;
-    });
+    // Populate form fields
+    document.getElementById('month-of').value = invoice.monthof;
+    document.getElementById('tenant-name').value = invoice.tenant;
+    document.getElementById('owner-name').value = invoice.owner;
+    document.getElementById('gst-tenant').value = invoice.gstin_tenant;
+    document.getElementById('gst-owner').value = invoice.gstin_owner;
+    document.getElementById('tenant-address').value = invoice.tenant_address;
+    document.getElementById('owner-address').value = invoice.owner_address;
+    document.getElementById('sac').value = invoice.SAC;
+    document.getElementById('rent').value = invoice.baseAmount;
+    document.getElementById('sgst').value = invoice.sgst_rate;
+    document.getElementById('cgst').value = invoice.cgst_rate;
+    document.getElementById('invoice-date').value = new Date(invoice.date.split('-').reverse().join('-')).toISOString().split('T')[0];
 
-    // Open a new popup window
-    const printWindow = window.open('', '', 'width=800,height=900');
+    // Mark form as "editing" by storing the invoiceNumber & financialYear
+    form.dataset.editingInvoice = `${invoiceNumber}-${financialYear}`;
 
-    // Write invoice content into the new window
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>Invoice #${invoiceNumber} - ${copyType}</title>
-                ${styles}
-                <style>
-                    body { margin: 20px; font-family: Arial, sans-serif; }
-                    table { border-collapse: collapse; width: 100%; }
-                    th, td { border: 1px solid black; padding: 8px; text-align: center; }
-                    th { background-color: #f2f2f2; }
-                </style>
-            </head>
-            <body>
-                ${invoiceElement.outerHTML}
-            </body>
-        </html>
-    `);
-
-    printWindow.document.close();
-
-    // Wait until content loads, then print
-    printWindow.onload = function () {
-        printWindow.print();
-        printWindow.close();
-    };
 }
-
 
 function convertToWords(amount) {
   const a = [
@@ -338,8 +630,7 @@ function convertToWords(amount) {
   return numToWords(Math.floor(amount));
 }
 
-
-function getFinancialYear(dateobj) {
+function getFinancialYear(dateobj){
   const date = new Date(dateobj);
   let year = date.getFullYear();
   const month = date.getMonth() + 1; // 1-12
@@ -352,4 +643,9 @@ function getFinancialYear(dateobj) {
   }
 }
 
+function formatMonthYear(yyyyMm) {
+    const [year, month] = yyyyMm.split('-');
+    const date = new Date(year, month - 1); // JS months are 0-based
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+}
 

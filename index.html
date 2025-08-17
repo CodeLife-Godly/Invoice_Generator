@@ -16,22 +16,28 @@
     <div id = "enter-mode" style = "display:none">
         <h2>Enter Invoice</h2>
         <form id = "invoice-form">
-            <label>
-                Tenant Name:
-                <input type = "text" id = "tenant-name" required><br>
-                <br>Tenant's GSTIN:
-                <input type = "text" id = "gst-tenant">
-                <br>
-            </label><br>  
+            <label>For The Month of:</label>
+            <input type = "month" id = "month-of" placeholder = "eg:May 2025" required>
+            <br><br>
+
+            <label for="tenant-name">Tenant Name:</label>
+            <input list="tenant-list" id="tenant-name" name="tenant-name" required>
+            <datalist id="tenant-list"></datalist><br>  
+            <br>
+            <label for = "gst-tenant">Tenant's GSTIN:</label>
+            <input type = "text" id = "gst-tenant" required>
+            <br>
             <label for = "tenant-address" style = "display:inline-block;vertical-align:top;margin-right:10px;">Tenant Address:</label>
             <textarea style = "vertical-align:top;" id = "tenant-address" rows = "3" placeholder="Line1&#10;Line2&#10;Line3" required></textarea>
-            <br><br><label>
-                Owner's Name:
-                <input type = "text" id = "owner-name" value = "Tushar Chandra" required>
-                <br><br>Owner's GSTIN:
-                <input type = "text" id = "gst-owner">
-                <br>
-            </label><br>
+            <br>
+
+            <label for="owner-name">Owner Name:</label>
+            <input list="owner-list" id="owner-name" name="owner-name" required>
+            <datalist id="owner-list"></datalist><br>  
+            <br>
+            <label for = "gst-owner">Owner's GSTIN:</label>
+            <input type = "text" id = "gst-owner" required>
+            <br>
             <label for = "owner-address" style ="display:inline-block;vertical-align:top;margin-right:10px;">Owner's Address</label>
             <textarea style = "vertical-align:top" id = "owner-address" rows = "3" placeholder = "Line1&#10;Line2&#10;Line3" required></textarea>
             <label><br>
