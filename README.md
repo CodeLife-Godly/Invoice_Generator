@@ -11,6 +11,8 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 - Save invoices in browser local storage.
 - Fetch and filter invoices by tenant name and invoice date.
 - Print professional invoices with Original and Duplicate copies.
+- Edit the fetched invoices.
+- Delete any Invoice you want.
 - Display total tax, total payable, and amount in words.
 - Financial year calculation based on invoice date.
 - Responsive and clean UI.
