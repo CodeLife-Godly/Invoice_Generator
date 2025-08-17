@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const invoiceList = document.getElementById('invoice-list');
   const tenantFilter = document.getElementById('tenant-filter');
   const dateFilter = document.getElementById('date-filter');
+  const fyfilter = document.getElementById('fy-filter');
   const enterModeDiv = document.getElementById('enter-mode');
   const fetchModeDiv = document.getElementById('fetch-mode');
 
@@ -25,10 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     populateTenantList();
   }
 
-  function saveOwner(ownerName, gst, address) {
+  function saveOwner(ownerName, gst, address,acc,ifsc) {
     let owners = JSON.parse(localStorage.getItem('owners')) || {};
     
-    owners[ownerName] = { gst, address };
+    owners[ownerName] = { gst, address, acc, ifsc };
     localStorage.setItem('owners', JSON.stringify(owners));
     populateOwnerList();
   }
@@ -39,12 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tenants[name]) {
         document.getElementById("gst-tenant").value = tenants[name].gst;
         document.getElementById("tenant-address").value = tenants[name].address;
-    } else {
-        // clear if new tenant
-        document.getElementById("gst-tenant").value = "";
+    } 
+    else{
+        document.getElementById("gst-tenant").value = document.getElementById("gst-tenant").defaultValue;
         document.getElementById("tenant-address").value = "";
-    }   
-}
+    } 
+    }
 
   // Save owner info if new
   function autofillOwner(name) {
@@ -52,44 +53,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (owners[name]) {
         document.getElementById("gst-owner").value = owners[name].gst;
         document.getElementById("owner-address").value = owners[name].address;
-    } else {
-        // clear if new owner
-        document.getElementById("gst-owner").value = "";
-        document.getElementById("owner-address").value = "";
+        document.getElementById("AC").value = owners[name].acc;
+        document.getElementById("IFSC").value = owners[name].ifsc;   
     }
-}
+    else{
+        document.getElementById("gst-owner").value = document.getElementById("gst-owner").defaultValue;
+        document.getElementById("owner-address").value = "";
+        document.getElementById("AC").value = document.getElementById("AC").defaultValue;
+        document.getElementById("IFSC").value = document.getElementById("IFSC").defaultValue;   
+        }
+    }
 
+    function updateTenantDropdown() {
+    const tenantList = document.getElementById("tenant-list");
+    tenantList.innerHTML = ""; // clear old entries
 
-function updateTenantDropdown() {
-  const tenantList = document.getElementById("tenant-list");
-  tenantList.innerHTML = ""; // clear old entries
+    const tenants = JSON.parse(localStorage.getItem("tenants")) || {};
+    Object.keys(tenants).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        tenantList.appendChild(option);
+    });
+    }
 
-  const tenants = JSON.parse(localStorage.getItem("tenants")) || {};
-  Object.keys(tenants).forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    tenantList.appendChild(option);
-  });
-}
+    function updateOwnerDropdown() {
+    const ownerList = document.getElementById("owner-list");
+    ownerList.innerHTML = "";
 
-function updateOwnerDropdown() {
-  const ownerList = document.getElementById("owner-list");
-  ownerList.innerHTML = "";
+    const owners = JSON.parse(localStorage.getItem("owners")) || {};
+    Object.keys(owners).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        ownerList.appendChild(option);
+    });
+    }
 
-  const owners = JSON.parse(localStorage.getItem("owners")) || {};
-  Object.keys(owners).forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    ownerList.appendChild(option);
-  });
-}
-
-document.getElementById("tenant-name").addEventListener("input", (e) => {
-  autofillTenant(e.target.value.trim());
-});
-document.getElementById("owner-name").addEventListener("input", (e) => {
-  autofillOwner(e.target.value.trim());
-});
+    document.getElementById("tenant-name").addEventListener("input", (e) => {
+    autofillTenant(e.target.value.trim());
+    });
+    document.getElementById("owner-name").addEventListener("input", (e) => {
+    autofillOwner(e.target.value.trim());
+    });
 
     form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -101,8 +105,10 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
     const owner = document.getElementById('owner-name').value.trim();
     const gst_owner = document.getElementById('gst-owner').value.trim();
     const owner_address = document.getElementById('owner-address').value.trim();
+    const owner_acc = document.getElementById('AC').value;
+    const owner_ifsc = document.getElementById('IFSC').value;
 
-    saveOwner(owner,gst_owner,owner_address);
+    saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc);
     updateOwnerDropdown();
     saveTenant(tenant,gst_tenant,tenant_address);
     updateTenantDropdown();
@@ -130,7 +136,7 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
 
 
     let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-    let invoice = { monthof, monthyear, monthYear, financialYear, gst_tenant, gst_owner, tenant_address, owner_address, tenant, owner, baseAmount, sgst, cgst, sgst_rate, cgst_rate, total, SAC, date: formattedDate, timestamp: new Date().toLocaleString() };
+    let invoice = { monthof, monthyear, monthYear, financialYear, gst_tenant, gst_owner, tenant_address, owner_address, tenant, owner, owner_acc,owner_ifsc, baseAmount, sgst, cgst, sgst_rate, cgst_rate, total, SAC, date: formattedDate, timestamp: new Date().toLocaleString() };
 
     const editing = form.dataset.editingInvoice;
 
@@ -182,6 +188,7 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
     fetchModeDiv.style.display = 'block';
     displayInvoices();
   };
+
   
   function displayInvoices() {
     const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
@@ -213,21 +220,33 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
         dateFilter.appendChild(option);
     });
 
+    const uniquefy = [...new Set(invoices.map(inv => inv.financialYear))];
+    fyfilter.innerHTML = '<option value = "">--ALL F.Y --</option>';
+    uniquefy.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        fyfilter.appendChild(option);
+    });
+
     renderFilteredInvoices(invoices);
 
     tenantFilter.onchange = () => renderFilteredInvoices(invoices);
     dateFilter.onchange = () => renderFilteredInvoices(invoices);
+    fyfilter.onchange = () => renderFilteredInvoices(invoices);
   }
 
   function renderFilteredInvoices(invoices) {
     invoiceList.innerHTML = '';
     const tenantValue = tenantFilter.value;
     const dateValue = dateFilter.value;
+    const fyvalue = fyfilter.value;
 
     const filtered = invoices.filter(inv => {
         const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
         const matchDate = dateValue ? inv.date === dateValue : true;
-        return matchTenant && matchDate;
+        const matchfy = fyvalue ? inv.financialYear == fyvalue : true;
+        return matchTenant && matchDate && matchfy;
     });
 
     if (filtered.length === 0) {
@@ -310,6 +329,58 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
     });
   }
 
+  function generateReport(){
+    const fy = document.getElementById('fy-filter').value;
+    const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+
+    // Apply filters
+    const tenantValue = document.getElementById('tenant-filter').value;
+    const dateValue = document.getElementById('date-filter').value;
+
+    const filtered = invoices.filter(inv => {
+        const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
+        const matchDate = dateValue ? inv.date === dateValue : true;
+        const matchFY = fy ? inv.financialYear === fy : true;
+        return matchTenant && matchDate && matchFY;
+    });
+
+    const reportDiv = document.getElementById('report-table');
+
+    if (filtered.length === 0) {
+        reportDiv.innerHTML = '<p>No invoices for this selection.</p>';
+        return;
+    }
+
+    let tableHTML = `<table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>Serial No</th>
+            <th>Invoice No</th>
+            <th>Date</th>
+            <th>Tenant</th>
+            <th>Owner</th>
+            <th>Base Amount</th>
+            <th>SGST</th>
+            <th>CGST</th>
+            <th>Total</th>
+        </tr>`;
+
+    filtered.forEach((inv, index) => {
+        tableHTML += `<tr>
+            <td>${index + 1}</td>
+            <td>${inv.financialYear}/${inv.invoiceNumber}</td>
+            <td>${inv.date}</td>
+            <td>${inv.tenant}</td>
+            <td>${inv.owner}</td>
+            <td>${inv.baseAmount}</td>
+            <td>${inv.sgst}</td>
+            <td>${inv.cgst}</td>
+            <td>${inv.total}</td>
+        </tr>`;
+    });
+
+    tableHTML += '</table>';
+    reportDiv.innerHTML = tableHTML;
+  }
 
   function renderInvoiceHTML(inv, copyType) {
     return `
@@ -335,7 +406,9 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.owner.toUpperCase()}</strong><br>
                 ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
-                <strong>GSTIN: ${inv.gst_owner}</strong>
+                <div id = "gst_div_owner" style = "display:${inv.gst_owner === "0" ? 'none':'block'}">
+                    <strong>GSTIN: ${inv.gst_owner}</strong>
+                </div>
             </td>
         </tr>
     </table>
@@ -348,7 +421,9 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.tenant.toUpperCase()}</strong><br>
                 ${inv.tenant_address.replace(/\n/g, '<br>')}<br><br>
-                <strong>GSTIN: ${inv.gst_tenant}</strong>
+                <div id = "gst_div_tenant" style = "display: ${inv.gst_tenant === "0" ? 'none' : 'block'}">
+                    <strong>GSTIN: ${inv.gst_owner}</strong>
+                </div>
             </td>
         </tr>
     </table>
@@ -440,6 +515,7 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
     <p style="margin-top: 30px;font-size:12px;">
         <em>
             Kindly favor us with a remittance of the same.<br>
+            ${inv.owner},State Bank Of India, Kusumkhera Branch, Ac No. : ${inv.owner_acc}, IFSC Code: ${inv.owner_ifsc}<br>
             Late payment beyond 10 days will attract 24% P.A. interest.<br>
             All disputes are subject to Haldwani Jurisdiction only.
         </em>
@@ -473,8 +549,60 @@ document.getElementById("owner-name").addEventListener("input", (e) => {
         if (duplicateDiv) duplicateDiv.remove();
 
         displayInvoices();
+        generateReport();
     }
   } 
+
+  function printReport() {
+    const reportDiv = document.getElementById('report-table');
+
+    if (!reportDiv || reportDiv.innerHTML.trim() === "") {
+        alert("No report to print! Please generate a report first.");
+        return;
+    }
+
+    // Collect existing styles
+    let styles = "";
+    document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
+        styles += node.outerHTML;
+    });
+
+    const printWindow = window.open('', '', 'width=1000,height=700');
+
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Invoice Report</title>
+                ${styles}
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                </style>
+            </head>
+            <body>
+                <h2>Invoice Report</h2>
+                ${reportDiv.innerHTML}
+            </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+
+
+  //prints the report
+   document.getElementById('print-report').addEventListener('click',printReport);
+
+
+   // Regenerate report automatically when filters change
+    document.getElementById('tenant-filter').addEventListener('change', generateReport);
+    document.getElementById('date-filter').addEventListener('change', generateReport);
+    document.getElementById('fy-filter').addEventListener('change', generateReport);
+
 });
 
 function populateTenantList() {
@@ -498,7 +626,6 @@ function populateOwnerList() {
     ownerList.appendChild(option);
   });
 }
-
 
 function printInvoice(elementId){
       const invoiceElement = document.getElementById(elementId);
@@ -607,7 +734,6 @@ function editInvoice(invoiceNumber, financialYear) {
 
     // Mark form as "editing" by storing the invoiceNumber & financialYear
     form.dataset.editingInvoice = `${invoiceNumber}-${financialYear}`;
-
 }
 
 function convertToWords(amount) {

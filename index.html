@@ -25,7 +25,7 @@
             <datalist id="tenant-list"></datalist><br>  
             <br>
             <label for = "gst-tenant">Tenant's GSTIN:</label>
-            <input type = "text" id = "gst-tenant" required>
+            <input type = "text" id = "gst-tenant" value = "0" placeholder = "No GST , type 0">
             <br>
             <label for = "tenant-address" style = "display:inline-block;vertical-align:top;margin-right:10px;">Tenant Address:</label>
             <textarea style = "vertical-align:top;" id = "tenant-address" rows = "3" placeholder="Line1&#10;Line2&#10;Line3" required></textarea>
@@ -36,23 +36,30 @@
             <datalist id="owner-list"></datalist><br>  
             <br>
             <label for = "gst-owner">Owner's GSTIN:</label>
-            <input type = "text" id = "gst-owner" required>
+            <input type = "text" id = "gst-owner" value = "0" placeholder = "No GST,type 0">
             <br>
             <label for = "owner-address" style ="display:inline-block;vertical-align:top;margin-right:10px;">Owner's Address</label>
             <textarea style = "vertical-align:top" id = "owner-address" rows = "3" placeholder = "Line1&#10;Line2&#10;Line3" required></textarea>
-            <label><br>
+            <label>
                 Rent:
                 <input type = "number" id = "rent" required>
-            </label><br>
+            </label>
+
+            <label for = "AC">Account Number:</label>
+            <input id = "AC" type = "text" value = "11179964981" required><br>
+
+            <label for = "IFSC">IFSC Code:</label>
+            <input id = "IFSC" type = "text" value = "SBIN0005100" required><br>
+
             <label>
                 Invoice Date:
                 <input type = "date" id = "invoice-date" value = "">
             </label>
-            <br><br>
+
             <label>
                 SAC/HSN:
                 <input type="number" id = "sac" value = "997212">
-            </label><br><br>
+            </label>
             <table>
                 <tr>
                     <td>
@@ -85,7 +92,15 @@
             <select id="date-filter">
                 <option value="">-- All Dates --</option>
             </select>
+
+            <label for = "fy-filter">Filter by Financial Year:</label>
+            <select id = "fy-filter">
+                <option value = "">-- All F.Y --</option>
+            </select>
         </div>
+
+        <button id="print-report" style="color:orange;font-size:large">Print Report</button>
+        <div id="report-table" style="margin-top:20px;"></div>
 
         <div id="invoice-list"></div>
     </div>
