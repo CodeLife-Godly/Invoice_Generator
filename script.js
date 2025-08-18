@@ -594,14 +594,28 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 
+   //event listener to show button to print and generate report
+   document.getElementById('generate-report').addEventListener('click',() => {
+    const popup = document.getElementById('popup');    
+    const element = document.getElementById('print-report');
+    popup.style.display = "block";
+    element.style.display = "inline-block";
+    generateReport();
+
+    setTimeout(() => {
+        popup.style.display = "none";
+    },2000);
+   });
+
   //prints the report
    document.getElementById('print-report').addEventListener('click',printReport);
 
 
    // Regenerate report automatically when filters change
-    document.getElementById('tenant-filter').addEventListener('change', generateReport);
-    document.getElementById('date-filter').addEventListener('change', generateReport);
-    document.getElementById('fy-filter').addEventListener('change', generateReport);
+    //document.getElementById('tenant-filter').addEventListener('change', generateReport);
+   // document.getElementById('date-filter').addEventListener('change', generateReport);
+   // document.getElementById('fy-filter').addEventListener('change', generateReport);
+
 
 });
 

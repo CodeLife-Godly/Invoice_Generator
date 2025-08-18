@@ -99,7 +99,32 @@
             </select>
         </div>
 
-        <button id="print-report" style="color:orange;font-size:large">Print Report</button>
+        <button id = "generate-report" style = "color:orange;font-size:large">Generate Report</button>
+        <button id="print-report" style="color:orange;font-size:large;display:none;">Print Report</button>
+
+        <div id="popup" style="
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: sans-serif;
+            width:170px;
+            height:100px;
+            text-align:center;
+            ">
+            ✅ Report generated!
+            <br><br>
+            <button onclick="document.getElementById('popup').style.display='none'">
+                Close
+            </button>
+        </div>
+
+        
         <div id="report-table" style="margin-top:20px;"></div>
 
         <div id="invoice-list"></div>
