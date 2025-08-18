@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.owner.toUpperCase()}</strong><br>
                 ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_owner" style = "display:${inv.gst_owner === "0" || inv.gst_owner === undefined || inv.gst_owner === null}? 'none':'block'}">
+                <div id = "gst_div_owner" style = "display:${inv.gst_owner === "0" || inv.gst_owner === undefined || inv.gst_owner === null ? 'none':'block'}">
                     <strong>GSTIN: ${inv.gst_owner}</strong>
                 </div>
             </td>
