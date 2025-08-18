@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.owner.toUpperCase()}</strong><br>
                 ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_owner" style = "display:${inv.gst_owner === "0" ? 'none':'block'}">
+                <div id = "gst_div_owner" style = "display:${inv.gst_owner === "0" || inv.gst_owner === undefined || inv.gst_owner === null}? 'none':'block'}">
                     <strong>GSTIN: ${inv.gst_owner}</strong>
                 </div>
             </td>
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.tenant.toUpperCase()}</strong><br>
                 ${inv.tenant_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_tenant" style = "display: ${inv.gst_tenant === "0" ? 'none' : 'block'}">
+                <div id = "gst_div_tenant" style = "display: ${inv.gst_tenant === "0" || inv.gst_tenant === undefined || inv.gst_tenant === null ? 'none' : 'block'}">
                     <strong>GSTIN: ${inv.gst_owner}</strong>
                 </div>
             </td>
