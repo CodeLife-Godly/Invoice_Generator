@@ -736,8 +736,8 @@ function editInvoice(invoiceNumber, financialYear) {
     document.getElementById('month-of').value = invoice.monthof;
     document.getElementById('tenant-name').value = invoice.tenant;
     document.getElementById('owner-name').value = invoice.owner;
-    document.getElementById('gst-tenant').value = invoice.gstin_tenant;
-    document.getElementById('gst-owner').value = invoice.gstin_owner;
+    document.getElementById('gst-tenant').value = (invoice.gst_tenant === undefined) ? "0" : invoice.gst_tenant;
+    document.getElementById('gst-owner').value = (invoice.gstin_owner === undefined) ? "0" : invoice.gst_owner;
     document.getElementById('tenant-address').value = invoice.tenant_address;
     document.getElementById('owner-address').value = invoice.owner_address;
     document.getElementById('sac').value = invoice.SAC;
