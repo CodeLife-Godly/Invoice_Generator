@@ -99,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const tenant = document.getElementById('tenant-name').value.trim();
-    const gst_tenant = document.getElementById('gst-tenant').value.trim();
+    const gst_tenant = document.getElementById('gst-tenant').value.trim() || "0" ;
     const tenant_address = document.getElementById('tenant-address').value.trim();
 
     const owner = document.getElementById('owner-name').value.trim();
-    const gst_owner = document.getElementById('gst-owner').value.trim();
+    const gst_owner = document.getElementById('gst-owner').value.trim() || "0" ;
     const owner_address = document.getElementById('owner-address').value.trim();
     const owner_acc = document.getElementById('AC').value;
     const owner_ifsc = document.getElementById('IFSC').value;
@@ -736,8 +736,14 @@ function editInvoice(invoiceNumber, financialYear) {
     document.getElementById('month-of').value = invoice.monthof;
     document.getElementById('tenant-name').value = invoice.tenant;
     document.getElementById('owner-name').value = invoice.owner;
-    document.getElementById('gst-tenant').value = (invoice.gst_tenant === undefined) ? "0" : invoice.gst_tenant;
-    document.getElementById('gst-owner').value = (invoice.gstin_owner === undefined) ? "0" : invoice.gst_owner;
+    document.getElementById('gst-tenant').value = (!invoice.gst_tenant || invoice.gst_tenant === "0") 
+    ? "0" 
+    : invoice.gst_tenant;
+
+document.getElementById('gst-owner').value = (!invoice.gst_owner || invoice.gst_owner === "0") 
+    ? "0" 
+    : invoice.gst_owner;
+
     document.getElementById('tenant-address').value = invoice.tenant_address;
     document.getElementById('owner-address').value = invoice.owner_address;
     document.getElementById('sac').value = invoice.SAC;
