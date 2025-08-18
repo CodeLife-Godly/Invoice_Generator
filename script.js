@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const owner_acc = document.getElementById('AC').value;
     const owner_ifsc = document.getElementById('IFSC').value;
 
-    const gst_tenant = getValueOrZero("gst-tenant");
-    const gst_owner  = getValueOrZero("gst-owner");
+    const gst_tenant = getValueOrZero('gst-tenant');
+    const gst_owner  = getValueOrZero('gst-owner');
 
     saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc);
     updateOwnerDropdown();
@@ -798,7 +798,10 @@ function formatMonthYear(yyyyMm) {
 
 function getValueOrZero(id) {
   const el = document.getElementById(id);
-  return el && el.value.trim() ? el.value.trim() : "0";
+  const v = (el?.value || '').trim();
+  const val = v || "0";
+  if (el) el.value = val; // keep the UI showing "0"
+  return val;
 }
 
 
