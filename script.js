@@ -99,14 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const tenant = document.getElementById('tenant-name').value.trim();
-    const gst_tenant = document.getElementById('gst-tenant').value.trim() || "0" ;
     const tenant_address = document.getElementById('tenant-address').value.trim();
 
     const owner = document.getElementById('owner-name').value.trim();
-    const gst_owner = document.getElementById('gst-owner').value.trim() || "0" ;
     const owner_address = document.getElementById('owner-address').value.trim();
     const owner_acc = document.getElementById('AC').value;
     const owner_ifsc = document.getElementById('IFSC').value;
+
+    const gst_tenant = getValueOrZero("gst-tenant");
+    const gst_owner  = getValueOrZero("gst-owner");
 
     saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc);
     updateOwnerDropdown();
@@ -794,4 +795,10 @@ function formatMonthYear(yyyyMm) {
     const date = new Date(year, month - 1); // JS months are 0-based
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
+
+function getValueOrZero(id) {
+  const el = document.getElementById(id);
+  return el && el.value.trim() ? el.value.trim() : "0";
+}
+
 
