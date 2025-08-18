@@ -99,15 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const tenant = document.getElementById('tenant-name').value.trim();
+    const gst_tenant = document.getElementById('gst-tenant').value.trim();
+
     const tenant_address = document.getElementById('tenant-address').value.trim();
 
     const owner = document.getElementById('owner-name').value.trim();
+    const gst_owner = document.getElementById('gst-owner').value.trim();
+
     const owner_address = document.getElementById('owner-address').value.trim();
     const owner_acc = document.getElementById('AC').value;
     const owner_ifsc = document.getElementById('IFSC').value;
-
-    const gst_tenant = getValueOrZero('gst-tenant');
-    const gst_owner  = getValueOrZero('gst-owner');
 
     saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc);
     updateOwnerDropdown();
@@ -407,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.owner.toUpperCase()}</strong><br>
                 ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_owner" style = "display: ${inv.gst_owner && inv.gst_owner !== "0" ? 'block' : 'none'}">
+                <div id = "gst_owner_div" style = "display:${inv.gst_owner && inv.gst_owner !== "0" && inv.gst_owner != "undefined" ? 'block':'none'}">
                     <strong>GSTIN: ${inv.gst_owner}</strong>
                 </div>
             </td>
@@ -422,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.tenant.toUpperCase()}</strong><br>
                 ${inv.tenant_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_tenant" style = "display: ${inv.gst_tenant && inv.gst_tenant !== "0" ? 'block' : 'none'}">
+                <div id = "gst_tenant_div" style = "display: ${inv.gst_tenant && inv.gst_tenant !== "0" && inv.gst_tenant != "undefined" ? 'block' : 'none'}">
                     <strong>GSTIN: ${inv.gst_tenant}</strong>
                 </div>
             </td>
@@ -737,13 +738,17 @@ function editInvoice(invoiceNumber, financialYear) {
     document.getElementById('month-of').value = invoice.monthof;
     document.getElementById('tenant-name').value = invoice.tenant;
     document.getElementById('owner-name').value = invoice.owner;
-    document.getElementById('gst-tenant').value = (!invoice.gst_tenant || invoice.gst_tenant === "0") 
-    ? "0" 
-    : invoice.gst_tenant;
+    
+    let div_gst_tenant = document.getElementById('gst_tenant_div');
+    if(div_gst_tenant.style.display === "none"){
+        document.getElementById('gst-tenant').value = "0";
+    }else document.getElementById('gst-tenant').value = invoice.gst_tenant;
 
-document.getElementById('gst-owner').value = (!invoice.gst_owner || invoice.gst_owner === "0") 
-    ? "0" 
-    : invoice.gst_owner;
+    let div_gst_owner = document.getElementById('gst_owner_div');
+    if(div_gst_owner.style.display === "none"){
+        document.getElementById('gst-owner').value = "0";
+    }else document.getElementById('gst-owner').value = invoice.gst_owner;
+
 
     document.getElementById('tenant-address').value = invoice.tenant_address;
     document.getElementById('owner-address').value = invoice.owner_address;
@@ -795,13 +800,4 @@ function formatMonthYear(yyyyMm) {
     const date = new Date(year, month - 1); // JS months are 0-based
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
-
-function getValueOrZero(id) {
-  const el = document.getElementById(id);
-  const v = (el?.value || '').trim();
-  const val = v || "0";
-  if (el) el.value = val; // keep the UI showing "0"
-  return val;
-}
-
 
