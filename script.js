@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style="border:none; text-align:left;padding-left:30px;">
                 <strong>${inv.owner.toUpperCase()}</strong><br>
                 ${inv.owner_address.replace(/\n/g, '<br>')}<br><br>
-                <div id = "gst_div_owner" style = "display: ${inv.gst_owner && gst_owner !== "0" ? 'block' : 'none'}">
+                <div id = "gst_div_owner" style = "display: ${inv.gst_owner && inv.gst_owner !== "0" ? 'block' : 'none'}">
                     <strong>GSTIN: ${inv.gst_owner}</strong>
                 </div>
             </td>
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>${inv.tenant.toUpperCase()}</strong><br>
                 ${inv.tenant_address.replace(/\n/g, '<br>')}<br><br>
                 <div id = "gst_div_tenant" style = "display: ${inv.gst_tenant && inv.gst_tenant !== "0" ? 'block' : 'none'}">
-                    <strong>GSTIN: ${inv.gst_owner}</strong>
+                    <strong>GSTIN: ${inv.gst_tenant}</strong>
                 </div>
             </td>
         </tr>
