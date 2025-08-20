@@ -368,19 +368,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filtered.forEach((inv, index) => {
         tableHTML += `<tr>
-            <td>${index + 1}</td>
+            <td style = "text-align:center">${index + 1}</td>
             <td>${inv.financialYear}/${inv.invoiceNumber}</td>
             <td>${inv.date}</td>
             <td>${inv.tenant}</td>
             <td>${inv.owner}</td>
-            <td>${inv.baseAmount}</td>
-            <td>${inv.sgst}</td>
-            <td>${inv.cgst}</td>
-            <td>${inv.total}</td>
+            <td style = "text-align:center">${inv.baseAmount}</td>
+            <td style = "text-align:center">${inv.sgst}</td>
+            <td style = "text-align:center">${inv.cgst}</td>
+            <td style = "text-align:center">${inv.total}</td>
         </tr>`;
+        total += inv.total;
     });
 
-    tableHTML += '</table>';
+    tableHTML += `
+        <tr>
+            <td style = "text-align:center" colspan = "8">TOTAL</td>
+            <td style = "text-align:center" colspan = "1">${total}</td>
+        </tr>
+        </table>
+    `
     reportDiv.innerHTML = tableHTML;
   }
 
