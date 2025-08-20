@@ -347,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const reportDiv = document.getElementById('report-table');
+    let total = 0;
 
     if (filtered.length === 0) {
         reportDiv.innerHTML = '<p>No invoices for this selection.</p>';
@@ -807,4 +808,6 @@ function formatMonthYear(yyyyMm) {
     const date = new Date(year, month - 1); // JS months are 0-based
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
+
+
 
