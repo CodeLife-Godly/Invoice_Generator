@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dateInput = document.getElementById('invoice-date');
   const invoiceList = document.getElementById('invoice-list');
   const tenantFilter = document.getElementById('tenant-filter');
+  const ownerFilter = document.getElementById('owner-filter');
   const dateFilter = document.getElementById('date-filter');
   const fyfilter = document.getElementById('fy-filter');
   const enterModeDiv = document.getElementById('enter-mode');
@@ -190,13 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchModeDiv.style.display = 'block';
     displayInvoices();
   };
-
   
   function displayInvoices() {
     const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
     if (invoices.length === 0) {
         invoiceList.innerHTML = '<p>No invoices found.</p>';
+        ownerFilter.innerHTML = '<option value="">-- All Owners --</option>';
+        fyfilter.innerHTML = '<option value="">-- All FY --</option>';
         tenantFilter.innerHTML = '<option value="">-- All Tenants --</option>';
         dateFilter.innerHTML = '<option value="">-- All Dates --</option>';
         return;
@@ -211,6 +213,17 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = name;
         tenantFilter.appendChild(option);
     });
+
+    // Populate owner dropdown
+    const uniqueOwners = [...new Set(invoices.map(inv => inv.owner))];
+    ownerFilter.innerHTML = '<option value="">-- All Tenants --</option>';
+    uniqueOwners.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        ownerFilter.appendChild(option);
+    });
+
 
     // Populate date dropdown
     const uniqueDates = [...new Set(invoices.map(inv => inv.date))];
@@ -236,19 +249,22 @@ document.addEventListener('DOMContentLoaded', () => {
     tenantFilter.onchange = () => renderFilteredInvoices(invoices);
     dateFilter.onchange = () => renderFilteredInvoices(invoices);
     fyfilter.onchange = () => renderFilteredInvoices(invoices);
+    ownerFilter.onchange = () => renderFilteredInvoices(invoices);
   }
 
   function renderFilteredInvoices(invoices) {
     invoiceList.innerHTML = '';
     const tenantValue = tenantFilter.value;
+    const ownerValue = ownerFilter.value;
     const dateValue = dateFilter.value;
     const fyvalue = fyfilter.value;
 
     const filtered = invoices.filter(inv => {
         const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
+        const matchOwner = ownerValue ? inv.owner == ownerValue : true;
         const matchDate = dateValue ? inv.date === dateValue : true;
         const matchfy = fyvalue ? inv.financialYear == fyvalue : true;
-        return matchTenant && matchDate && matchfy;
+        return matchTenant && matchOwner && matchDate && matchfy;
     });
 
     if (filtered.length === 0) {
@@ -332,10 +348,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function generateReport(){
-    const fy = document.getElementById('fy-filter').value;
     const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
-    // Apply filters
+    //filters
+    const fy = document.getElementById('fy-filter').value;
+    const ownerValue = document.getElementById('owner-filter').value;
     const tenantValue = document.getElementById('tenant-filter').value;
     const dateValue = document.getElementById('date-filter').value;
 
@@ -343,11 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
         const matchDate = dateValue ? inv.date === dateValue : true;
         const matchFY = fy ? inv.financialYear === fy : true;
-        return matchTenant && matchDate && matchFY;
+        const matchOwner = ownerValue ? inv.owner == ownerValue : true;
+        return matchTenant && matchDate && matchFY && matchOwner;
     });
 
     const reportDiv = document.getElementById('report-table');
-    let total = 0;
+    let grand_total = 0,total_cgst = 0,total_sgst = 0,total_amount = 0;
 
     if (filtered.length === 0) {
         reportDiv.innerHTML = '<p>No invoices for this selection.</p>';
@@ -379,7 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <td style = "text-align:center">${inv.cgst}</td>
             <td style = "text-align:center">${inv.total}</td>
         </tr>`;
-        total += inv.total;
+        grand_total += inv.total;
+        total_cgst += inv.cgst;
+        total_sgst += inv.sgst;
+        total_amount += inv.baseAmount;
+
     });
 
     tableHTML += `
@@ -811,6 +833,4 @@ function formatMonthYear(yyyyMm) {
     const date = new Date(year, month - 1); // JS months are 0-based
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
-
-
 
