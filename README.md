@@ -41,10 +41,8 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 - JavaScript
 - localStorage to store Invoices
 
----Sample Invoice 
+## Sample Invoice
 <img width="628" height="883" alt="Screenshot 2025-08-21 at 18 38 21" src="https://github.com/user-attachments/assets/6e2b9622-dbb3-418b-a92c-999c1f664276" />
-
-
 
 ## Author
 
