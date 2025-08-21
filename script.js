@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate owner dropdown
     const uniqueOwners = [...new Set(invoices.map(inv => inv.owner))];
-    ownerFilter.innerHTML = '<option value="">-- All Tenants --</option>';
+    ownerFilter.innerHTML = '<option value="">-- All Owners --</option>';
     uniqueOwners.forEach(name => {
         const option = document.createElement('option');
         option.value = name;
