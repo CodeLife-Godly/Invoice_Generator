@@ -7,9 +7,11 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 ## Features
 
 - Enter invoice details including tenant, owner, GSTIN, rent, tax rates, and invoice date.
+- Remembers your input for next time.
 - Calculate SGST and CGST automatically based on input rates.
 - Save invoices in browser local storage.
 - Fetch and filter invoices by tenant name and invoice date.
+- Based on filtration generate a comprehensive report 
 - Print professional invoices with Original and Duplicate copies.
 - Edit the fetched invoices.
 - Delete any Invoice you want.
@@ -27,6 +29,8 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 4. Click **Fetch** to view saved invoices.
 5. Use filters to search invoices by tenant or date.
 6. Print invoices as needed using the provided print buttons.
+7. Click on Generate Report button to generate report
+8. Print the generated report easily
 
 ---
 
