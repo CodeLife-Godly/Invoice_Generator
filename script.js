@@ -384,8 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tableHTML += `
         <tr>
-            <td style = "text-align:center" colspan = "8">TOTAL</td>
-            <td style = "text-align:center" colspan = "1">${total}</td>
+            <td style = "text-align:center" colspan = "5">TOTAL</td>
+            <td style = "text-align:center" colspan = "1">${total_amount}</td>
+            <td style = "text-align:center" colspan = "1">${total_sgst}</td>
+            <td style = "text-align:center" colspan = "1">${total_cgst}</td>
+            <td style = "text-align:center" colspan = "1">${grand_total}</td>
         </tr>
         </table>
     `
