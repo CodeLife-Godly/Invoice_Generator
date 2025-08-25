@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,6 +45,15 @@
                 <input type = "number" id = "rent" required>
             </label>
 
+            <label for = "court">Court Jurisdiction:</label>
+            <input type = "text" id = "court" value = "Haldwani" required>
+
+            <label for = "bank-name">Bank Name:</label>
+            <input id = "bank-name" type = "text" value = "State Bank Of India" required>
+
+            <label for = "branch-name">Branch Name:</label>
+            <input id = "branch-name" type = "text" value = "Kusumkhera" required>
+
             <label for = "AC">Account Number:</label>
             <input id = "AC" type = "text" value = "11179964981" required><br>
 
@@ -84,29 +92,29 @@
 
     <div id = "fetch-mode" style = "display:none">
         <div>
-            <label for="tenant-filter">Filter by Tenant:</label>
+            <label for="tenant-filter">Filter by Tenant</label>
             <select id="tenant-filter">
                 <option value="">-- All Tenants --</option>
             </select>
 
-            <label for="owner-filter">Filter by Owner:</label>
+            <label for="owner-filter">Filter by Owner</label>
             <select id="owner-filter">
                 <option value="">-- All Owners --</option>
             </select>
 
-            <label for="date-filter">Filter by Date:</label>
+            <label for="date-filter">Filter by Date</label>
             <select id="date-filter">
                 <option value="">-- All Dates --</option>
             </select>
 
-            <label for = "fy-filter">Filter by Financial Year:</label>
+            <label for = "fy-filter">Filter by Financial Year</label>
             <select id = "fy-filter">
                 <option value = "">-- All F.Y --</option>
             </select>
         </div>
 
-        <button id = "generate-report" style = "color:orange;font-size:large">Generate Report</button>
-        <button id="print-report" style="color:orange;font-size:large;display:none;">Print Report</button>
+        <button id = "update-report" style = "color:orange;font-size:large;">Update Report</button>
+        <button id="print-report" style="color:orange;font-size:large;">Print Report</button>
 
         <div id="popup" style="
             display: none;
@@ -123,7 +131,7 @@
             height:100px;
             text-align:center;
             ">
-            ✅ Report Generated!
+            ✅ Report Updated!
             <br><br>
             <button onclick="document.getElementById('popup').style.display='none'">
                 Close ❌
