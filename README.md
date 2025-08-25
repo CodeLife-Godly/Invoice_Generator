@@ -3,10 +3,16 @@
 A simple, web-based invoice generator designed for landlords and tenants. Easily create, save, and fetch rental invoices with GST calculations including SGST and CGST. The app stores invoices locally in the browser and supports filtering by tenant,owner, financial year and date. Features professional invoice print layouts with original and duplicate copies including option to get comprehensive report generated. Built with HTML, CSS, JavaScript and localStorage.
 
 ## Enter Mode
-<img width="1470" height="837" alt="Screenshot 2025-08-21 at 18 39 59" src="https://github.com/user-attachments/assets/9986c23d-909c-4f22-9150-a3b6ecbb0c1c" />
+<img width="1462" height="837" alt="Screenshot 2025-08-21 at 18 44 38" src="https://github.com/user-attachments/assets/d177a295-00d6-49f6-b445-5efc0882b42b" />
 
 ## Fetch Mode 
-<img width="1462" height="837" alt="Screenshot 2025-08-21 at 18 44 38" src="https://github.com/user-attachments/assets/d177a295-00d6-49f6-b445-5efc0882b42b" />
+<img width="1470" height="836" alt="Screenshot 2025-08-26 at 00 13 20" src="https://github.com/user-attachments/assets/e5ea0952-312c-4dfd-8857-530b43576eb3" />
+
+## Sample Invoice
+<img width="628" height="883" alt="Screenshot 2025-08-21 at 18 38 21" src="https://github.com/user-attachments/assets/6e2b9622-dbb3-418b-a92c-999c1f664276" />
+
+## Sample Report
+<img width="1385" height="211" alt="Screenshot 2025-08-21 at 18 46 37" src="https://github.com/user-attachments/assets/1c9dca6a-6f40-4c30-9923-a1f5eb1576ba" />
 
 ---
 
@@ -48,11 +54,7 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 - JavaScript
 - localStorage to store Invoices
 
-## Sample Invoice
-<img width="628" height="883" alt="Screenshot 2025-08-21 at 18 38 21" src="https://github.com/user-attachments/assets/6e2b9622-dbb3-418b-a92c-999c1f664276" />
 
-## Sample Report
-<img width="1385" height="211" alt="Screenshot 2025-08-21 at 18 46 37" src="https://github.com/user-attachments/assets/1c9dca6a-6f40-4c30-9923-a1f5eb1576ba" />
 
 ## Author
 
