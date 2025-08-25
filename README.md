@@ -9,7 +9,7 @@ A simple, web-based invoice generator designed for landlords and tenants. Easily
 <img width="1470" height="836" alt="Screenshot 2025-08-26 at 00 13 20" src="https://github.com/user-attachments/assets/e5ea0952-312c-4dfd-8857-530b43576eb3" />
 
 ## Sample Invoice
-<img width="628" height="883" alt="Screenshot 2025-08-21 at 18 38 21" src="https://github.com/user-attachments/assets/6e2b9622-dbb3-418b-a92c-999c1f664276" />
+<img width="426" height="832" alt="Screenshot 2025-08-21 at 18 54 38" src="https://github.com/user-attachments/assets/e0c00241-2305-4b48-8f8c-1f2a08e1b0dc" />
 
 ## Sample Report
 <img width="1385" height="211" alt="Screenshot 2025-08-21 at 18 46 37" src="https://github.com/user-attachments/assets/1c9dca6a-6f40-4c30-9923-a1f5eb1576ba" />
