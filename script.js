@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
     populateTenantList();
   }
 
-  function saveOwner(ownerName, gst, address,acc,ifsc) {
+  function saveOwner(ownerName, gst, address,acc,ifsc,bankname,branchname,courts) {
     let owners = JSON.parse(localStorage.getItem('owners')) || {};
     
-    owners[ownerName] = { gst, address, acc, ifsc };
+    owners[ownerName] = { gst, address, acc, ifsc, bankname,branchname,courts};
     localStorage.setItem('owners', JSON.stringify(owners));
     populateOwnerList();
   }
@@ -55,13 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById("gst-owner").value = owners[name].gst;
         document.getElementById("owner-address").value = owners[name].address;
         document.getElementById("AC").value = owners[name].acc;
-        document.getElementById("IFSC").value = owners[name].ifsc;   
+        document.getElementById("IFSC").value = owners[name].ifsc;  
+        document.getElementById("bank-name").value = owners[name].bankname;
+        document.getElementById("branch-name").value = owners[name].branchname;
+        document.getElementById("court").value = owners[name].courts;
     }
     else{
         document.getElementById("gst-owner").value = document.getElementById("gst-owner").defaultValue;
         document.getElementById("owner-address").value = "";
         document.getElementById("AC").value = document.getElementById("AC").defaultValue;
-        document.getElementById("IFSC").value = document.getElementById("IFSC").defaultValue;   
+        document.getElementById("IFSC").value = document.getElementById("IFSC").defaultValue;  
+        document.getElementById("bank-name").value = document.getElementById("bank-name").defaultValue;
+        document.getElementById("branch-name").value = document.getElementById("branch-name").defaultValue; 
+        document.getElementById("court").value = document.getElementById("court").defaultValue;
         }
     }
 
@@ -111,7 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const owner_acc = document.getElementById('AC').value;
     const owner_ifsc = document.getElementById('IFSC').value;
 
-    saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc);
+    const bank_name = document.getElementById('bank-name').value.trim();
+    const branch_name = document.getElementById('branch-name').value.trim();
+    const court = document.getElementById("court").value.trim();
+
+
+    saveOwner(owner,gst_owner,owner_address,owner_acc,owner_ifsc,bank_name,branch_name,court);
     updateOwnerDropdown();
     saveTenant(tenant,gst_tenant,tenant_address);
     updateTenantDropdown();
@@ -139,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
-    let invoice = { monthof, monthyear, monthYear, financialYear, gst_tenant, gst_owner, tenant_address, owner_address, tenant, owner, owner_acc,owner_ifsc, baseAmount, sgst, cgst, sgst_rate, cgst_rate, total, SAC, date: formattedDate, timestamp: new Date().toLocaleString() };
+    let invoice = { monthof, monthyear, monthYear, financialYear, gst_tenant, gst_owner, tenant_address, owner_address, tenant, owner, bank_name,branch_name,owner_acc,owner_ifsc, court, baseAmount, sgst, cgst, sgst_rate, cgst_rate, total, SAC, date: formattedDate, timestamp: new Date().toLocaleString() };
 
     const editing = form.dataset.editingInvoice;
 
@@ -191,7 +202,73 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchModeDiv.style.display = 'block';
     displayInvoices();
   };
-  
+
+  document.getElementById('update-report').addEventListener("click",updateReport);  //no ()
+
+ function updateReport() {
+    const reportDiv = document.getElementById('report-table');
+    if (!reportDiv || reportDiv.innerHTML.trim() === "") {
+        alert("No report to update! Please generate a report first.");
+        return;
+    }
+
+    let rows = Array.from(reportDiv.querySelectorAll("tr"));
+    let checkedCount = 0;
+
+    rows.forEach((row, index) => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        if (index === 0) return; // skip header row
+        if (checkbox && checkbox.checked) {
+            checkedCount++;
+        }
+    });
+
+    if (checkedCount === 0) {
+        alert("⚠️ Please select at least one checkbox first to update the report!");
+        return; 
+    }
+
+    const lastRow = rows[rows.length - 1];
+    if (lastRow && lastRow.cells[0] && lastRow.cells[0].innerText === "TOTAL") {
+        lastRow.remove();
+        rows.pop();
+    }
+
+    rows.forEach((row, index) => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        if (index === 0) return; // always keep header row
+        if (checkbox && !checkbox.checked) {
+            row.remove();
+        }
+    });
+
+    let total_amount = 0, total_sgst = 0, total_cgst = 0, grand_total = 0;
+    rows = Array.from(reportDiv.querySelectorAll("tr"));
+    let serial = 1;
+
+    rows.forEach((row, index) => {
+        if (index === 0) return; // skip header
+        row.cells[0].textContent = serial++ ;
+        const cells = row.querySelectorAll("td");
+        if (cells.length >= 9) { // ensure row has data cells
+            total_amount += parseFloat(cells[5].innerText) || 0;
+            total_sgst += parseFloat(cells[6].innerText) || 0;
+            total_cgst += parseFloat(cells[7].innerText) || 0;
+            grand_total += parseFloat(cells[8].innerText) || 0;
+        }
+    });
+
+    const newTotalRow = document.createElement("tr");
+    newTotalRow.innerHTML = `
+        <td style="text-align:center" colspan="5">TOTAL</td>
+        <td style="text-align:center">${total_amount.toFixed(2)}</td>
+        <td style="text-align:center">${total_sgst.toFixed(2)}</td>
+        <td style="text-align:center">${total_cgst.toFixed(2)}</td>
+        <td style="text-align:center">${grand_total.toFixed(2)}</td>
+    `;
+    reportDiv.querySelector("table").appendChild(newTotalRow);
+}
+
   function displayInvoices() {
     const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
@@ -243,36 +320,40 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = year;
         fyfilter.appendChild(option);
     });
+  
+    generateReport();
 
-    renderFilteredInvoices(invoices);
-
-    tenantFilter.onchange = () => renderFilteredInvoices(invoices);
-    dateFilter.onchange = () => renderFilteredInvoices(invoices);
-    fyfilter.onchange = () => renderFilteredInvoices(invoices);
-    ownerFilter.onchange = () => renderFilteredInvoices(invoices);
-  }
-
-  function renderFilteredInvoices(invoices) {
-    invoiceList.innerHTML = '';
-    const tenantValue = tenantFilter.value;
-    const ownerValue = ownerFilter.value;
-    const dateValue = dateFilter.value;
-    const fyvalue = fyfilter.value;
-
-    const filtered = invoices.filter(inv => {
-        const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
-        const matchOwner = ownerValue ? inv.owner == ownerValue : true;
-        const matchDate = dateValue ? inv.date === dateValue : true;
-        const matchfy = fyvalue ? inv.financialYear == fyvalue : true;
-        return matchTenant && matchOwner && matchDate && matchfy;
-    });
-
-    if (filtered.length === 0) {
-        invoiceList.innerHTML = '<p>No invoices found for selection.</p>';
-        return;
+    tenantFilter.onchange = () => {
+        generateReport();
+    } 
+    dateFilter.onchange = () =>{
+        generateReport();
+    } 
+    fyfilter.onchange = () => {
+        generateReport();
     }
+    ownerFilter.onchange = () => {
+        generateReport();
+    }
+}
 
-    filtered.forEach(inv => {
+  function renderFilteredInvoices() {
+        const allInvoices = JSON.parse(localStorage.getItem('invoices')) || [];
+
+        const selectedKeys = Array
+            .from(document.querySelectorAll('.invoiceSelect:checked'))
+            .map(cb => cb.value);
+
+        const wants = new Set(selectedKeys);
+
+        const filtered = allInvoices.filter(inv =>
+            wants.has(`${inv.financialYear}:${inv.invoiceNumber}`)
+        );
+
+        const invoiceList = document.getElementById('invoice-list');
+        invoiceList.innerHTML = '';
+
+    filtered.forEach(inv =>{
         const div = document.createElement('div');
         div.style.border = '1px solid #ccc';
         div.style.margin = '10px 0';
@@ -347,10 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function generateReport(){
+  function generateReport() {
     const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 
-    //filters
+    // filters
     const fy = document.getElementById('fy-filter').value;
     const ownerValue = document.getElementById('owner-filter').value;
     const tenantValue = document.getElementById('tenant-filter').value;
@@ -358,23 +439,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const filtered = invoices.filter(inv => {
         const matchTenant = tenantValue ? inv.tenant === tenantValue : true;
-        const matchDate = dateValue ? inv.date === dateValue : true;
-        const matchFY = fy ? inv.financialYear === fy : true;
-        const matchOwner = ownerValue ? inv.owner == ownerValue : true;
+        const matchDate   = dateValue ? inv.date === dateValue : true;
+        const matchFY     = fy ? inv.financialYear === fy : true;
+        const matchOwner  = ownerValue ? inv.owner === ownerValue : true;
         return matchTenant && matchDate && matchFY && matchOwner;
     });
 
     const reportDiv = document.getElementById('report-table');
-    let grand_total = 0,total_cgst = 0,total_sgst = 0,total_amount = 0;
-
-    if (filtered.length === 0) {
+    if (!filtered.length) {
         reportDiv.innerHTML = '<p>No invoices for this selection.</p>';
         return;
     }
 
-    let tableHTML = `<table border="1" cellpadding="5" cellspacing="0">
-        <tr>
-            <th>Serial No</th>
+
+    let totalBase = 0, totalSgst = 0, totalCgst = 0, totalGrand = 0;
+
+    let tableHTML = `
+        <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+            <th>SN</th>
             <th>Invoice No</th>
             <th>Date</th>
             <th>Tenant</th>
@@ -383,39 +467,78 @@ document.addEventListener('DOMContentLoaded', () => {
             <th>SGST</th>
             <th>CGST</th>
             <th>Total</th>
-        </tr>`;
+            <th>
+                Get Invoice:<br>
+                <input type="checkbox" id="select-all-invoices" />
+            </th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
 
-    filtered.forEach((inv, index) => {
-        tableHTML += `<tr>
-            <td style = "text-align:center">${index + 1}</td>
+    filtered.forEach((inv, i) => {
+        totalBase  += Number(inv.baseAmount) || 0;
+        totalSgst  += Number(inv.sgst) || 0;
+        totalCgst  += Number(inv.cgst) || 0;
+        totalGrand += Number(inv.total) || 0;
+
+        const key = `${inv.financialYear}:${inv.invoiceNumber}`;
+        tableHTML += `
+        <tr>
+            <td style="text-align:center">${i + 1}</td>
             <td>${inv.financialYear}/${inv.invoiceNumber}</td>
             <td>${inv.date}</td>
             <td>${inv.tenant}</td>
             <td>${inv.owner}</td>
-            <td style = "text-align:center">${inv.baseAmount}</td>
-            <td style = "text-align:center">${inv.sgst}</td>
-            <td style = "text-align:center">${inv.cgst}</td>
-            <td style = "text-align:center">${inv.total}</td>
-        </tr>`;
-        grand_total += inv.total;
-        total_cgst += inv.cgst;
-        total_sgst += inv.sgst;
-        total_amount += inv.baseAmount;
-
+            <td style="text-align:center">${(inv.baseAmount)}</td>
+            <td style="text-align:center">${(inv.sgst)}</td>
+            <td style="text-align:center">${(inv.cgst)}</td>
+            <td style="text-align:center">${(inv.total)}</td>
+            <td style="text-align:center">
+            <input type="checkbox" class="invoiceSelect" value="${key}">
+            </td>
+        </tr>
+        `;
     });
 
     tableHTML += `
-        <tr>
-            <td style = "text-align:center" colspan = "5">TOTAL</td>
-            <td style = "text-align:center" colspan = "1">${total_amount}</td>
-            <td style = "text-align:center" colspan = "1">${total_sgst}</td>
-            <td style = "text-align:center" colspan = "1">${total_cgst}</td>
-            <td style = "text-align:center" colspan = "1">${grand_total}</td>
-        </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+            <td style="text-align:center" colspan="5">TOTAL</td>
+            <td style="text-align:center">${(totalBase)}</td>
+            <td style="text-align:center">${(totalSgst)}</td>
+            <td style="text-align:center">${(totalCgst)}</td>
+            <td style="text-align:center">${(totalGrand)}</td>
+            <td></td>
+            </tr>
+        </tfoot>
         </table>
-    `
+    `;
+
     reportDiv.innerHTML = tableHTML;
-  }
+
+    // "Select all" behavior
+    const selectAll = document.getElementById('select-all-invoices');
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            document.querySelectorAll('.invoiceSelect').forEach(cb => {
+            cb.checked = selectAll.checked;
+            });
+            renderFilteredInvoices();
+        });
+    }
+
+    //individual select behaviour
+    document.querySelectorAll('.invoiceSelect').forEach(cb => {
+        cb.addEventListener('change', () => {
+            renderFilteredInvoices();
+        const all = document.querySelectorAll('.invoiceSelect');
+        const checked = document.querySelectorAll('.invoiceSelect:checked');
+        selectAll.checked = (all.length > 0 && all.length === checked.length);
+        });
+    });
+}
 
   function renderInvoiceHTML(inv, copyType) {
     return `
@@ -550,9 +673,9 @@ document.addEventListener('DOMContentLoaded', () => {
     <p style="margin-top: 30px;font-size:12px;">
         <em>
             Kindly favor us with a remittance of the same.<br>
-            ${inv.owner},State Bank Of India, Kusumkhera Branch, Ac No. : ${inv.owner_acc}, IFSC Code: ${inv.owner_ifsc}<br>
+            ${inv.owner},${inv.bank_name}, ${inv.branch_name} Branch, Ac No. : ${inv.owner_acc}, IFSC Code: ${inv.owner_ifsc}<br>
             Late payment beyond 10 days will attract 24% P.A. interest.<br>
-            All disputes are subject to Haldwani Jurisdiction only.
+            All disputes are subject to ${inv.court} Jurisdiction only.
         </em>
     </p>
 
@@ -596,14 +719,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    const clonedTable = reportDiv.cloneNode(true);
+
     // Collect existing styles
     let styles = "";
     document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
         styles += node.outerHTML;
     });
 
+    // Open print window
     const printWindow = window.open('', '', 'width=1000,height=700');
-
     printWindow.document.write(`
         <html>
             <head>
@@ -611,13 +736,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${styles}
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; }
-                    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; }
+                    table, th, td { font-size:small;border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left; }
                     th { background-color: #f2f2f2; }
+                    th:last-child,td:last-child{
+                        display : none;
+                    }
                 </style>
             </head>
             <body>
-                <h2>Invoice Report</h2>
-                ${reportDiv.innerHTML}
+                <h1 style = "text-align:center;">Invoice Report</h1>
+                ${clonedTable.outerHTML}
             </body>
         </html>
     `);
@@ -626,32 +754,19 @@ document.addEventListener('DOMContentLoaded', () => {
     printWindow.focus();
     printWindow.print();
     printWindow.close();
-}
-
-
-   //event listener to show button to print and generate report
-   document.getElementById('generate-report').addEventListener('click',() => {
-    const popup = document.getElementById('popup');    
-    const element = document.getElementById('print-report');
-    popup.style.display = "block";
-    element.style.display = "inline-block";
-    generateReport();
-
-    setTimeout(() => {
-        popup.style.display = "none";
-    },2000);
-   });
-
+    }
   //prints the report
    document.getElementById('print-report').addEventListener('click',printReport);
 
+   //show popup
+   document.getElementById('update-report').addEventListener('click',() =>{
+    let div = document.getElementById('popup');
+    div.style.display = "block";
 
-   // Regenerate report automatically when filters change
-    //document.getElementById('tenant-filter').addEventListener('change', generateReport);
-   // document.getElementById('date-filter').addEventListener('change', generateReport);
-   // document.getElementById('fy-filter').addEventListener('change', generateReport);
-
-
+    setTimeout(() =>{
+        div.style.display = "none";
+    },2000);
+   });
 });
 
 function populateTenantList() {
@@ -833,4 +948,3 @@ function formatMonthYear(yyyyMm) {
     const date = new Date(year, month - 1); // JS months are 0-based
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
-
